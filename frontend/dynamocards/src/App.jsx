@@ -1,8 +1,7 @@
-/*
 import React, { useState } from 'react';
 import axios from 'axios';
 import Flashcard from './Flashcard.jsx';
-import './Flashcard.css'
+import './Flashcard.css';
 
 function App() {
   const [youtubeLink, setYoutubeLink] = useState("");
@@ -17,23 +16,21 @@ function App() {
       const response = await axios.post("http://localhost:8000/analyze_video", {
         youtube_link: youtubeLink,
       });
-      
+
       const data = response.data;
+      console.log("API Response: ", data);  // Log the entire response
+
       if (data.key_concepts && Array.isArray(data.key_concepts)) {
-        const transformedConcepts = data.key_concepts.map(concept => {
-          const term = Object.keys(concept)[0];
-          const definition = concept[term];
-          return { term, definition }; 
-        });
+        const transformedConcepts = data.key_concepts.flatMap(concept => 
+          Object.entries(concept).map(([term, definition]) => ({ term, definition }))
+        );
         setKeyConcepts(transformedConcepts);
-      }
-      else {
+      } else {
         console.error("Data does not contain key concepts: ", data);
         setKeyConcepts([]);
       }
-
     } catch (error) {
-      console.log(error);
+      console.error("Error fetching key concepts:", error);
       setKeyConcepts([]);
     }
   };
@@ -68,56 +65,8 @@ function App() {
           />
         ))}
       </div>
-
     </div>
-  )
+  );
 }
 
 export default App;
-*/
-
-import React, { useState } from 'react';
-import axios from 'axios';
-
-function App() {
-  const [youtubeLink, setYoutubeLink] = useState("");
-  const [responseData, setResponseData] = useState(null);
-
-  const handleLinkChange = (event) => {
-    setYoutubeLink(event.target.value);
-  };
-
-  const sendLink = async () => {
-    try {
-      const response = await axios.post("http://localhost:8000/analyze_video", {
-        youtube_link: youtubeLink,
-      });
-      setResponseData(response.data);
-    } catch (error) {
-      console.log(error);
-    }
-  };
-
-  return (
-    <div className="App">
-      <h1>Youtube Link to Flashcards Generator</h1>
-      <input
-        type="text"
-        placeholder="Paste Youtube Link Here"
-        value={youtubeLink}
-        onChange={handleLinkChange}
-      />
-        <button onClick={sendLink}>
-          Generate Flashcards
-        </button>
-        {responseData && (
-          <div>
-            <h2>Response Data: </h2>
-            <p>{JSON.stringify(responseData, null, 2)}</p>
-          </div>
-        )}
-      </div>
-    )
-  }
-
-  export default App;
